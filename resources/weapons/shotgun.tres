@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_wd"]
+
+[resource]
+script = ExtResource("1_wd")
+id = "shotgun"
+display_name = "Shotgun"
+base_damage = 7.0
+pellets = 6
+spread_deg = 22.0
+fire_rate = 1.2
+base_mag_size = 5
+reload_time = 1.8
+bullet_speed = 780.0
+bullet_range = 340.0
+sfx = "shotgun"
+shake = 5.0
+kick = 90.0

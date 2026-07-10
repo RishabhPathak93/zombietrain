@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_data.gd" id="1_ed"]
+[ext_resource type="Texture2D" path="res://assets/textures/zombie_heavy.png" id="2_tx"]
+
+[resource]
+script = ExtResource("1_ed")
+id = "heavy"
+texture = ExtResource("2_tx")
+max_hp = 130.0
+speed = 46.0
+damage = 20
+attack_range = 52.0
+attack_windup = 0.5
+attack_cooldown = 1.6
+aggro_range = 280.0
+hearing_range = 560.0
+coin_min = 4
+coin_max = 7
+sprite_scale = 1.0
+anim = "stomp"
+special = "slam"
+special_range = 135.0
+special_cooldown = 5.0

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_data.gd" id="1_ed"]
+[ext_resource type="Texture2D" path="res://assets/textures/zombie_walker.png" id="2_tx"]
+
+[resource]
+script = ExtResource("1_ed")
+id = "walker"
+texture = ExtResource("2_tx")
+max_hp = 30.0
+speed = 62.0
+damage = 10
+attack_range = 42.0
+attack_windup = 0.35
+attack_cooldown = 1.2
+aggro_range = 250.0
+hearing_range = 520.0
+coin_min = 1
+coin_max = 3
+sprite_scale = 1.0
+anim = "sway"
+special = "none"

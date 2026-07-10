@@ -1,0 +1,73 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
+[application]
+
+config/name="Zombie Train Escape"
+config/description="Top-down zombie survival. Refuel, rescue, and escape before the horde closes in."
+config/version="1.0.0"
+run/main_scene="res://scenes/boot.tscn"
+config/features=PackedStringArray("4.7")
+boot_splash/bg_color=Color(0.05, 0.06, 0.1, 1)
+config/icon="res://icon.png"
+
+[audio]
+
+buses/default_bus_layout="res://resources/default_bus_layout.tres"
+
+[autoload]
+
+EventBus="*res://autoload/event_bus.gd"
+SaveGame="*res://autoload/save_game.gd"
+AudioMan="*res://autoload/audio_man.gd"
+GameState="*res://autoload/game_state.gd"
+Fx="*res://autoload/fx.gd"
+Pool="*res://autoload/pool.gd"
+Router="*res://autoload/router.gd"
+UITheme="*res://autoload/ui_theme.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=4
+
+[dotnet]
+
+project/assembly_name="Zombie Train Escape"
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[layer_names]
+
+2d_physics/layer_1="world"
+2d_physics/layer_2="player"
+2d_physics/layer_3="enemies"
+2d_physics/layer_4="bullets"
+2d_physics/layer_5="pickups"
+
+[physics]
+
+2d/default_gravity=0.0
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0.07, 0.08, 0.12, 1)

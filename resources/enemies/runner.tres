@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_data.gd" id="1_ed"]
+[ext_resource type="Texture2D" path="res://assets/textures/zombie_runner.png" id="2_tx"]
+
+[resource]
+script = ExtResource("1_ed")
+id = "runner"
+texture = ExtResource("2_tx")
+max_hp = 20.0
+speed = 150.0
+damage = 8
+attack_range = 38.0
+attack_windup = 0.25
+attack_cooldown = 0.9
+aggro_range = 340.0
+hearing_range = 640.0
+coin_min = 2
+coin_max = 4
+sprite_scale = 1.0
+anim = "lean"
+special = "lunge"
+special_range = 240.0
+special_cooldown = 3.5

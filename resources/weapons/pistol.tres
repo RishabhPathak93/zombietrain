@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_wd"]
+
+[resource]
+script = ExtResource("1_wd")
+id = "pistol"
+display_name = "Pistol"
+base_damage = 12.0
+pellets = 1
+spread_deg = 3.0
+fire_rate = 3.0
+base_mag_size = 12
+reload_time = 1.0
+bullet_speed = 950.0
+bullet_range = 540.0
+sfx = "pistol"
+shake = 2.0
+kick = 30.0

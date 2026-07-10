@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_data.gd" id="1_ed"]
+[ext_resource type="Texture2D" path="res://assets/textures/boss3.png" id="2_tx"]
+
+[resource]
+script = ExtResource("1_ed")
+id = "boss"
+texture = ExtResource("2_tx")
+max_hp = 680.0
+speed = 96.0
+damage = 20
+attack_range = 66.0
+attack_windup = 0.35
+attack_cooldown = 1.1
+aggro_range = 1400.0
+hearing_range = 1600.0
+coin_min = 45
+coin_max = 55
+sprite_scale = 1.0
+anim = "sway"
+special = "none"
