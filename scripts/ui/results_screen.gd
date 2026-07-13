@@ -18,7 +18,8 @@ func show_victory() -> void:
 		1: sub = "Chapter 2 unlocked: Sector Seven."
 		2: sub = "Chapter 3 unlocked: The Passenger."
 		3: sub = "Chapter 4 unlocked: Depot 12."
-		_: sub = "The recall engine is dead. Project EMBER is not."
+		4: sub = "Chapter 5 unlocked: Project EMBER."
+		_: sub = "The signal is gone. The world is quiet — the good kind."
 	_build(true, title, sub)
 	AudioMan.play("victory")
 	AudioMan.stop_music()

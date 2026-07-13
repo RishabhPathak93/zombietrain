@@ -1,21 +1,31 @@
 extends Node
 ## Run state machine, mission objectives, and the escape timer.
 
-enum State { MENU, CUTSCENE, PLAYING, PAUSED, WON, LOST }
+enum State { MENU, CUTSCENE, PLAYING, PAUSED, WON, LOST, PUZZLE }
 
 const RUN_TIME := 240.0
-const RUN_TIMES := {1: 240.0, 2: 270.0, 3: 270.0, 4: 300.0}
-const MAX_CHAPTER := 4
+const RUN_TIMES := {1: 300.0, 2: 330.0, 3: 330.0, 4: 360.0, 5: 390.0}
+const GATE_TEXTS := {
+	1: "Restore power at the generator panel",
+	2: "Crack the tower gate code",
+	3: "Unseal the engine car door",
+	4: "Reset the assembly shed breakers",
+	5: "Override the vault door",
+}
+const MAX_CHAPTER := 5
 const FUEL_NEEDED := 3
 const MEDS_NEEDED := 2
 const RELAYS_NEEDED := 3
 const SEARCH_NEEDED := 3
-const BOSS_NAMES := {1: "THE CONDUCTOR", 2: "THE BROADCASTER", 3: "THE PASSENGER", 4: "THE FOREMAN"}
-const CHAPTER_NAMES := {1: "JUNCTION NINE", 2: "SECTOR SEVEN", 3: "THE PASSENGER", 4: "DEPOT 12"}
+const BOSS_NAMES := {1: "THE CONDUCTOR", 2: "THE BROADCASTER", 3: "THE PASSENGER", 4: "THE FOREMAN", 5: "THE VOICE"}
+const CHAPTER_NAMES := {1: "JUNCTION NINE", 2: "SECTOR SEVEN", 3: "THE PASSENGER", 4: "DEPOT 12", 5: "PROJECT EMBER"}
 
 var chapter := 1
 var relays := 0
 var searched := 0
+var gate_open := false
+var gate_code := "000"
+var code_digits: Array[String] = []
 var run_duration := RUN_TIME
 var state: int = State.MENU
 var time_left: float = RUN_TIME
@@ -41,6 +51,9 @@ func start_run(chapter_num: int = 1) -> void:
 	time_left = run_duration
 	relays = 0
 	searched = 0
+	gate_open = false
+	gate_code = "%d%d%d" % [randi_range(1, 9), randi_range(0, 9), randi_range(0, 9)]
+	code_digits = []
 	fuel = 0
 	meds = 0
 	boss_defeated = false
@@ -72,20 +85,26 @@ func _process(delta: float) -> void:
 		lose("The horde overran the station.")
 
 func objective_id() -> String:
-	if chapter == 2 or chapter == 4:
+	if chapter == 2 or chapter == 4 or chapter == 5:
 		if relays < RELAYS_NEEDED:
 			return "relays"
+		if not gate_open:
+			return "gate"
 		if not boss_defeated:
 			return "boss"
 		return "escape"
 	if chapter == 3:
 		if searched < SEARCH_NEEDED:
 			return "search"
+		if not gate_open:
+			return "gate"
 		if not boss_defeated:
 			return "boss"
 		return "escape"
 	if fuel < FUEL_NEEDED or meds < MEDS_NEEDED:
 		return "supplies"
+	if not gate_open:
+		return "gate"
 	if not boss_defeated:
 		return "boss"
 	if not survivor_rescued:
@@ -97,9 +116,13 @@ func objective_text() -> String:
 		"relays":
 			if chapter == 4:
 				return "Destroy the amplifiers  •  %d/%d" % [relays, RELAYS_NEEDED]
+			if chapter == 5:
+				return "Destroy the echo conduits  •  %d/%d" % [relays, RELAYS_NEEDED]
 			return "Destroy the signal relays  •  %d/%d" % [relays, RELAYS_NEEDED]
 		"search":
 			return "Search the train cars  •  %d/%d" % [searched, SEARCH_NEEDED]
+		"gate":
+			return String(GATE_TEXTS.get(chapter, "Open the way"))
 		"supplies":
 			var parts: Array[String] = []
 			if fuel < FUEL_NEEDED:
@@ -112,6 +135,7 @@ func objective_text() -> String:
 				2: return "Destroy the Broadcaster at the tower"
 				3: return "The Passenger waits in the engine car"
 				4: return "Bring down the Foreman"
+				5: return "Silence The Voice in the vault"
 			return "Defeat the Conductor in the North Hall"
 		"rescue":
 			return "Open the cage and free the survivor"
@@ -151,6 +175,21 @@ func add_search() -> void:
 	EventBus.objective_changed.emit()
 	_maybe_start_escape()
 
+func open_gate() -> void:
+	gate_open = true
+	EventBus.objective_changed.emit()
+
+func add_code_digit() -> void:
+	if code_digits.size() < 3:
+		code_digits.append(gate_code[code_digits.size()])
+		EventBus.objective_changed.emit()
+
+func code_hint() -> String:
+	var hint := ""
+	for i in 3:
+		hint += (code_digits[i] if i < code_digits.size() else "_") + " "
+	return hint.strip_edges()
+
 func add_coins(amount: int) -> void:
 	coins_run += amount
 	EventBus.coins_changed.emit(coins_run)
@@ -162,7 +201,7 @@ func on_boss_defeated() -> void:
 
 func _side_objectives_done() -> bool:
 	match chapter:
-		2, 4: return relays >= RELAYS_NEEDED
+		2, 4, 5: return relays >= RELAYS_NEEDED
 		3: return searched >= SEARCH_NEEDED
 	return true
 

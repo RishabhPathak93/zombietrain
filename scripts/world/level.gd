@@ -5,6 +5,7 @@ extends Node2D
 ## zombies, the caged survivor, the boss hall, and the train.
 
 signal boss_zone_entered
+signal puzzle_requested(kind: String)
 
 var world_rect := Rect2(0, 0, 3200, 1800)
 const WALL_T := 28.0
@@ -34,6 +35,9 @@ var train_door_pos := Vector2(1560, 1460)
 var player_start := Vector2(1560, 1480)
 var intro_focus := Vector2(1600, 500)
 
+var gate_console_pos := Vector2.ZERO
+var _gate_body: StaticBody2D
+var _console_used := false
 var _fuel_pickups: Array[Pickup] = []
 var _med_pickups: Array[Pickup] = []
 var _target_timer := 0.0
@@ -56,9 +60,16 @@ func _ready() -> void:
 	_build_loot()
 	_build_zombies()
 	_build_boss_hall()
+	build_gate(1530, 686, 140, 56)
+	build_console(Vector2(1400, 800), "wires")
+	spawn_note(Vector2(750, 1150), "Stationmaster's Log",
+		"Day 400. The lights stay on. As long as the generator hums they circle the fence but never swarm. It was never the light they feared.\nIt's the frequency.")
+	spawn_note(Vector2(2750, 350), "Torn Poster",
+		"EMBER ENERGY — 'Powering the West.'\nUnderneath, scratched in with a knife: THEY KNEW.")
 	_build_atmosphere()
 
 func _common_init() -> void:
+	y_sort_enabled = true
 	_rng.randomize()
 	Pool.register("coin", _make_coin)
 	EventBus.escape_phase_started.connect(_on_escape_phase)
@@ -208,7 +219,7 @@ func _prop(tex: Texture2D, pos: Vector2, solid: bool, size := Vector2.ZERO, rot 
 		var sprite := Sprite2D.new()
 		sprite.texture = tex
 		sprite.rotation = rot
-		sprite.z_index = 4
+		sprite.z_index = 10
 		body.add_child(sprite)
 		body.position = pos
 		add_child(body)
@@ -217,7 +228,7 @@ func _prop(tex: Texture2D, pos: Vector2, solid: bool, size := Vector2.ZERO, rot 
 		sprite.texture = tex
 		sprite.position = pos
 		sprite.rotation = rot
-		sprite.z_index = 4
+		sprite.z_index = 10
 		add_child(sprite)
 
 func _build_props() -> void:
@@ -269,10 +280,12 @@ func spawn_coin_burst(pos: Vector2, count: int) -> void:
 
 func spawn_crate_loot(pos: Vector2) -> void:
 	var roll := _rng.randf()
-	if roll < 0.6:
+	if roll < 0.55:
 		spawn_coin_burst(pos, _rng.randi_range(3, 5))
-	elif roll < 0.85:
+	elif roll < 0.75:
 		_spawn_pickup("ammo", pos)
+	elif roll < 0.88:
+		_spawn_pickup("grenade", pos)
 	else:
 		_spawn_pickup("heart", pos)
 
@@ -399,7 +412,7 @@ func _build_boss_hall() -> void:
 	add_child(trigger)
 
 func _on_boss_zone(body: Node2D) -> void:
-	if _boss_triggered or not body is Player:
+	if _boss_triggered or not body is Player or not GameState.gate_open:
 		return
 	_boss_triggered = true
 	boss.activate()
@@ -420,8 +433,87 @@ func open_cage() -> void:
 	tw.tween_callback(cage.queue_free)
 	cage = null
 
+# ---------------------------------------------------------------- gate & console
+func build_gate(x: float, y: float, w: float, h: float) -> void:
+	_gate_body = StaticBody2D.new()
+	_gate_body.collision_layer = 1
+	_gate_body.collision_mask = 0
+	var shape := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = Vector2(w, h)
+	shape.shape = rect
+	_gate_body.add_child(shape)
+	var sprite := Sprite2D.new()
+	sprite.texture = preload("res://assets/textures/gate.png")
+	sprite.scale = Vector2(w / 128.0, maxf(h, 56.0) / 96.0)
+	sprite.z_index = 14
+	_gate_body.add_child(sprite)
+	var glow := Sprite2D.new()
+	glow.texture = preload("res://assets/textures/glow.png")
+	glow.modulate = Color(1.0, 0.75, 0.3, 0.2)
+	glow.scale = Vector2(w / 100.0, 1.2)
+	glow.z_index = 30
+	_gate_body.add_child(glow)
+	_gate_body.position = Vector2(x + w / 2.0, y + h / 2.0)
+	add_child(_gate_body)
+
+func open_gate_visual() -> void:
+	if _gate_body == null:
+		return
+	AudioMan.play("cage_open")
+	Fx.shake(4.0)
+	Fx.burst(_gate_body.global_position, Color(1.0, 0.85, 0.4), 14, 180.0, 0.5)
+	var tw := create_tween()
+	tw.tween_property(_gate_body, "modulate:a", 0.0, 0.6)
+	tw.tween_callback(_gate_body.queue_free)
+	_gate_body = null
+
+func build_console(pos: Vector2, kind: String) -> void:
+	gate_console_pos = pos
+	var sprite := Sprite2D.new()
+	sprite.texture = preload("res://assets/textures/console.png")
+	sprite.position = pos
+	sprite.z_index = 10
+	add_child(sprite)
+	var glow := Sprite2D.new()
+	glow.texture = preload("res://assets/textures/glow.png")
+	glow.position = pos + Vector2(0, -20)
+	glow.modulate = Color(0.4, 0.95, 0.85, 0.25)
+	glow.scale = Vector2(1.6, 1.6)
+	glow.z_index = 30
+	add_child(glow)
+	var blink := glow.create_tween()
+	blink.set_loops()
+	blink.tween_property(glow, "modulate:a", 0.1, 0.6)
+	blink.tween_property(glow, "modulate:a", 0.3, 0.6)
+	var zone := Area2D.new()
+	zone.collision_layer = 0
+	zone.collision_mask = 2
+	var zshape := CollisionShape2D.new()
+	var circle := CircleShape2D.new()
+	circle.radius = 70.0
+	zshape.shape = circle
+	zone.add_child(zshape)
+	zone.position = pos
+	zone.body_entered.connect(func(body: Node2D) -> void:
+		if body is Player and not _console_used and GameState.objective_id() == "gate":
+			puzzle_requested.emit(kind)
+	)
+	add_child(zone)
+
+func mark_console_used() -> void:
+	_console_used = true
+
+func spawn_note(pos: Vector2, title: String, text: String) -> void:
+	var note := Pickup.new()
+	add_child(note)
+	note.global_position = pos
+	note.note_title = title
+	note.note_text = text
+	note.setup("note", 1)
+
 # ---------------------------------------------------------------- atmosphere
-func _build_atmosphere(dusk_color := Color(0.82, 0.85, 1.0), lamp_positions: Array[Vector2] = []) -> void:
+func _build_atmosphere(dusk_color := Color(0.55, 0.58, 0.8), lamp_positions: Array[Vector2] = []) -> void:
 	var dusk := CanvasModulate.new()
 	dusk.color = dusk_color
 	add_child(dusk)
@@ -432,14 +524,29 @@ func _build_atmosphere(dusk_color := Color(0.82, 0.85, 1.0), lamp_positions: Arr
 			Vector2(600, 450), Vector2(2600, 450), Vector2(1600, 400),
 			Vector2(700, 1470), Vector2(2400, 1470), Vector2(1560, 1470),
 		]
+	var neon_palette := [
+		Color(1.0, 0.85, 0.5, 0.2), Color(0.35, 0.9, 1.0, 0.2), Color(1.0, 0.4, 0.75, 0.18),
+	]
+	var lamp_i := 0
 	for pos in lamp_positions:
+		var neon_col: Color = neon_palette[lamp_i % neon_palette.size()]
+		lamp_i += 1
 		var glow := Sprite2D.new()
 		glow.texture = TEX_GLOW
 		glow.position = pos
 		glow.scale = Vector2(6, 6)
-		glow.modulate = Color(1.0, 0.92, 0.7, 0.16)
+		glow.modulate = neon_col
 		glow.z_index = 30
 		add_child(glow)
+		var tube := Sprite2D.new()
+		tube.texture = preload("res://assets/textures/neon_tube.png")
+		tube.position = pos + Vector2(0, -34)
+		tube.modulate = Color(neon_col.r, neon_col.g, neon_col.b, 0.9)
+		var mat := CanvasItemMaterial.new()
+		mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		tube.material = mat
+		tube.z_index = 31
+		add_child(tube)
 		if _rng.randf() < 0.4:
 			var tw := create_tween()
 			tw.set_loops()
@@ -494,6 +601,7 @@ func _update_targets() -> void:
 		targets["meds"] = _nearest(_med_pickups, player_pos)
 	if boss and is_instance_valid(boss):
 		targets["boss"] = boss.global_position
+	targets["gate"] = gate_console_pos
 	targets["rescue"] = Vector2(1600, 300)
 	targets["escape"] = train_door_pos
 	GameState.objective_targets = targets

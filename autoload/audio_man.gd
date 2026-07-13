@@ -84,6 +84,7 @@ func play(sfx_name: String, volume_db: float = 0.0, pitch_var: float = 0.08) -> 
 	var p0 := _sfx_players[0]
 	p0.stream = SFX[sfx_name]
 	p0.volume_db = volume_db
+	p0.pitch_scale = randf_range(1.0 - pitch_var, 1.0 + pitch_var)
 	p0.play()
 
 func music(track: String, fade_time: float = 1.2) -> void:

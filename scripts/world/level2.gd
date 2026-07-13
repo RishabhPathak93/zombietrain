@@ -27,10 +27,15 @@ func _ready() -> void:
 	_build_props_city()
 	_build_loot_city()
 	_build_zombies_city()
-	_build_atmosphere(Color(0.72, 0.75, 0.95), [
+	_build_atmosphere(Color(0.48, 0.5, 0.75), [
 		Vector2(550, 700), Vector2(2650, 700), Vector2(1600, 1250),
 		Vector2(1000, 1470), Vector2(2200, 1470),
 	])
+	build_console(Vector2(1600, 760), "code")
+	spawn_note(Vector2(700, 350), "Field Notes (I.C.)",
+		"The tower doesn't broadcast TO them. It broadcasts THROUGH them. Every walker is a relay.\nI built lamps that jam it. Junction Nine is my lighthouse.")
+	spawn_note(Vector2(2800, 1250), "Quarantine Sign",
+		"SECTOR 7 — AUTHORIZED EMBER PERSONNEL ONLY.\nBadge required past this point. Someone has crossed out 'personnel' and written 'property'.")
 	EventBus.objective_changed.connect(_check_boss_wake)
 
 # ---------------------------------------------------------------- ground
@@ -124,7 +129,7 @@ func _build_tower() -> void:
 	add_child(trigger)
 
 func _check_boss_wake() -> void:
-	if not _boss_triggered and GameState.relays >= GameState.RELAYS_NEEDED:
+	if not _boss_triggered and GameState.gate_open:
 		_boss_triggered = true
 		Fx.float_text(_tower_pos + Vector2(0, 160), "THE TOWER SCREAMS", UITheme.COL_BAD, 26)
 		boss.activate()
@@ -139,6 +144,10 @@ func _build_relays() -> void:
 		# Guards
 		spawn_zombie(HEAVY, pos + Vector2(70, 40))
 		spawn_zombie(RUNNER, pos + Vector2(-80, -40))
+		var chip := Pickup.new()
+		add_child(chip)
+		chip.global_position = pos + Vector2(0, 70)
+		chip.setup("code", 1)
 
 # ---------------------------------------------------------------- props & loot
 func _build_props_city() -> void:
@@ -217,5 +226,6 @@ func _update_targets() -> void:
 			targets["relays"] = best
 	if boss and is_instance_valid(boss):
 		targets["boss"] = boss.global_position
+	targets["gate"] = gate_console_pos
 	targets["escape"] = train_door_pos
 	GameState.objective_targets = targets

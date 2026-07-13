@@ -28,6 +28,12 @@ func _ready() -> void:
 	_build_search_points()
 	_build_engine_car()
 	_build_exit()
+	build_gate(3700, 440, 24, 120)
+	build_console(Vector2(3580, 620), "simon")
+	spawn_note(Vector2(2635, 400), "Passenger Manifest",
+		"Car 4, seat 12: VALE, E. — priority transfer to Depot 12.\nEscort: two guards. Cargo: one sealed case. DO NOT OPEN THE CASE.")
+	spawn_note(Vector2(900, 620), "Child's Drawing",
+		"A crayon train under a red sky.\nOn the back, in careful letters: 'mom says the radio man keeps us safe.'")
 	_build_loot_train()
 	_build_zombies_train()
 	_build_atmosphere_train()
@@ -168,7 +174,7 @@ func _build_zombies_train() -> void:
 
 func _build_atmosphere_train() -> void:
 	var dusk := CanvasModulate.new()
-	dusk.color = Color(0.7, 0.72, 0.9)
+	dusk.color = Color(0.46, 0.48, 0.7)
 	add_child(dusk)
 	# Cabin lamps
 	for i in 6:
@@ -221,5 +227,6 @@ func _update_targets() -> void:
 			targets["search"] = best
 	if boss and is_instance_valid(boss):
 		targets["boss"] = boss.global_position
+	targets["gate"] = gate_console_pos
 	targets["escape"] = train_door_pos
 	GameState.objective_targets = targets

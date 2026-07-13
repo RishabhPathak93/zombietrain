@@ -11,8 +11,19 @@ const UPGRADE_DEFS := {
 	"shotgun_damage": {"name": "Shotgun Damage", "base_cost": 70, "per": 0.15},
 	"shotgun_rate": {"name": "Shotgun Fire Rate", "base_cost": 90, "per": 0.10},
 	"shotgun_mag": {"name": "Shotgun Mag +1", "base_cost": 60, "per": 1.0},
+	"smg_damage": {"name": "SMG Damage", "base_cost": 70, "per": 0.15},
+	"smg_rate": {"name": "SMG Fire Rate", "base_cost": 90, "per": 0.10},
+	"smg_mag": {"name": "SMG Mag +5", "base_cost": 60, "per": 5.0},
+	"rifle_damage": {"name": "Rifle Damage", "base_cost": 90, "per": 0.15},
+	"rifle_rate": {"name": "Rifle Fire Rate", "base_cost": 110, "per": 0.10},
+	"rifle_mag": {"name": "Rifle Mag +1", "base_cost": 70, "per": 1.0},
 	"vest": {"name": "Armor Vest (+15 HP)", "base_cost": 100, "per": 15.0},
 	"boots": {"name": "Scout Boots (+6% Speed)", "base_cost": 100, "per": 0.06},
+}
+
+const WEAPON_SHOP := {
+	"smg": {"name": "SMG — fast bullet hose", "cost": 350},
+	"rifle": {"name": "Rifle — pierces 3 targets", "cost": 600},
 }
 
 var data: Dictionary = {}
@@ -31,6 +42,7 @@ func _defaults() -> Dictionary:
 		"wins": 0,
 		"kills_total": 0,
 		"seen_intro": false,
+		"weapons_owned": ["pistol", "shotgun"],
 		"chapter2_unlocked": false,
 		"unlocked_chapters": 1,
 		"last_chapter": 1,
@@ -79,6 +91,16 @@ func spend(amount: int) -> bool:
 	if coins() < amount:
 		return false
 	data["coins"] = coins() - amount
+	save_data()
+	return true
+
+func owns_weapon(id: String) -> bool:
+	return id in data["weapons_owned"]
+
+func buy_weapon(id: String) -> bool:
+	if owns_weapon(id) or not spend(int(WEAPON_SHOP[id]["cost"])):
+		return false
+	data["weapons_owned"].append(id)
 	save_data()
 	return true
 

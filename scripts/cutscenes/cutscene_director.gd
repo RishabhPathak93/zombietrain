@@ -214,6 +214,11 @@ func _play_city_prologue() -> void:
 			await _say("iris", "The recall engine is here. Three amplifiers keep it alive.", 1.2)
 			await _say("redd", "This place built our train, Mara. Maybe the signal, too.", 1.2)
 			await _say("mara", "Then we end it where it started.", 0.9)
+		5:
+			await _say("narrator", "Beneath Depot 12, an elevator nobody logged. Project EMBER.", 1.3)
+			await _say("iris", "The heart of the signal is down there. Three echo conduits feed it.", 1.2)
+			await _say("redd", "Whatever wears the signal is waiting for you by name, scout.", 1.2)
+			await _say("mara", "Good. I have my mother's message to deliver.", 1.0)
 	await Router.fade_out(0.9)
 	city.queue_free()
 
@@ -227,6 +232,7 @@ func play_intro() -> void:
 		2: await _ground_intro_ch2()
 		3: await _ground_intro_ch3()
 		4: await _ground_intro_ch4()
+		5: await _ground_intro_ch5()
 	_end()
 	if not SaveGame.data["seen_intro"]:
 		SaveGame.data["seen_intro"] = true
@@ -241,7 +247,7 @@ func _ground_intro_ch1() -> void:
 	await _say("redd", "Junction Nine. Last fuel stop before the mountains.", 0.8)
 	await _pan(Vector2(1600, 900), 2.2, 0.9)
 	await _say("redd", "Mara — tanks are dry, and little Pip's fever is getting worse.", 1.0)
-	await _say("redd", "We need fuel and medicine. Four minutes. That's all the horde will give us.", 1.0)
+	await _say("redd", "We need fuel and medicine. Five minutes. That's all the horde will give us.", 1.0)
 	await _pan(player.global_position, 1.6, 1.0)
 	await _say("mara", "On it, Commander.", 0.6)
 	await _pan(Vector2(1600, 500), 1.4, 0.95)
@@ -259,7 +265,7 @@ func _ground_intro_ch2() -> void:
 	await _pan(Vector2(520, 700), 1.8, 0.95)
 	await _say("iris", "Relay A... B is across the plaza, C is by the south street.", 1.0)
 	await _pan(player.global_position, 1.6, 1.0)
-	await _say("redd", "Four and a half minutes of fuel, Mara. Make them count.", 1.0)
+	await _say("redd", "Five and a half minutes of fuel, Mara. Make them count.", 1.0)
 	await _say("mara", "Kill the relays. Kill the signal. Got it.", 0.8)
 
 func _ground_intro_ch3() -> void:
@@ -286,6 +292,19 @@ func _ground_intro_ch4() -> void:
 	await _pan(player.global_position, 1.6, 1.0)
 	await _say("redd", "Something big is guarding that shed. Yard-boss big.", 1.0)
 	await _say("mara", "Good. I owe this place a wrecking.", 0.9)
+
+func _ground_intro_ch5() -> void:
+	camera.top_level = true
+	camera.global_position = level.intro_focus
+	camera.zoom = Vector2.ONE * 0.85
+	AudioMan.play("signal", -4.0, 0.0)
+	await Router.fade_in(1.0)
+	await _say("iris", "There. The vault. And it's... humming your name, Mara.", 1.2)
+	await _pan(Vector2(560, 680), 1.6, 0.95)
+	await _say("iris", "Conduits — west, east, south. Kill them and the vault loses its choir.", 1.1)
+	await _pan(player.global_position, 1.6, 1.0)
+	await _say("redd", "Last stop, scout. Finish it and come home.", 1.1)
+	await _say("mara", "For Pip. For Iris. For my mother. Let's go.", 1.0)
 
 # ================================================================ rescue (ch1)
 func play_rescue() -> void:
@@ -338,6 +357,15 @@ func play_ending() -> void:
 			await _say("mara", "...My mother.", 1.4)
 			AudioMan.play("radio", 0.0, 0.0)
 			await _say("radio", "...recall complete... welcome home, Mara...", 1.6)
+		5:
+			await _say("iris", "Readings at zero. Zero, Commander. The signal is GONE.", 1.2)
+			await _say("redd", "Then why are you crying, doc?", 0.9)
+			await _say("iris", "Because the horde outside just... stopped. They're only people-shaped now. Standing in the quiet.", 1.5)
+			AudioMan.play("radio", -6.0, 0.0)
+			await _say("radio", "...this is a recording. If you hear this, my daughter found the heart of EMBER...", 1.6)
+			await _say("radio", "...and chose to burn it. I'm proud of you, little spark. BE FREE.", 1.8)
+			await _say("mara", "...Goodbye, mom.", 1.6)
+			await _say("redd", "All aboard, Mara Vale. The line runs free.", 1.4)
 	await Router.fade_out(1.2)
 	subtitles.close()
 	if not _skipped:
@@ -346,6 +374,7 @@ func play_ending() -> void:
 			2: await _title_card("TO BE CONTINUED", "CHAPTER 3: THE PASSENGER")
 			3: await _title_card("TO BE CONTINUED", "CHAPTER 4: DEPOT 12")
 			4: await _title_card("TO BE CONTINUED", "CHAPTER 5: PROJECT EMBER")
+			5: await _title_card("THE END", "THE EMBER LINE RUNS FREE — THANK YOU FOR PLAYING")
 	_active = false
 	GameState.win()
 

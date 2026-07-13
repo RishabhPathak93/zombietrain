@@ -15,6 +15,7 @@ func _init() -> void:
 	collision_layer = 1
 	collision_mask = 0
 	add_to_group("breakable")
+	add_to_group("aim_assist")
 	var shape := CollisionShape2D.new()
 	var circle := CircleShape2D.new()
 	circle.radius = 32.0
@@ -52,6 +53,7 @@ func take_damage(amount: float, _from_dir: Vector2) -> void:
 func _shut_down() -> void:
 	_dead = true
 	remove_from_group("breakable")
+	remove_from_group("aim_assist")
 	AudioMan.play("power_down")
 	Fx.shake(5.0)
 	Fx.vibrate(40)

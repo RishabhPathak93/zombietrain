@@ -61,7 +61,9 @@ func _on_resume() -> void:
 	resumed.emit()
 
 func _on_quit() -> void:
-	close()
+	visible = false
+	get_tree().paused = false
+	# Deliberately stay in PAUSED state so nothing resumes during the fade.
 	quit_to_menu.emit()
 
 func _show_settings() -> void:

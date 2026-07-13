@@ -8,6 +8,10 @@ enum ZState { IDLE, WANDER, CHASE, WINDUP, SPECIAL, DEAD }
 
 var data: EnemyData
 var hp := 30.0
+var body_offset := Vector2.ZERO
+var _walk_frames: Array[Texture2D] = []
+var _base_texture: Texture2D
+var _frame_clock := 0.0
 var zstate: int = ZState.IDLE
 var body_sprite: Sprite2D
 
@@ -42,17 +46,34 @@ func setup(enemy_data: EnemyData) -> void:
 
 	var shadow := Sprite2D.new()
 	shadow.texture = preload("res://assets/textures/shadow.png")
-	shadow.scale = Vector2(1.2, 0.9) * data.sprite_scale * (data.texture.get_width() / 64.0)
-	shadow.position = Vector2(0, 8)
+	shadow.scale = Vector2(1.4, 0.8) * data.sprite_scale * (data.texture.get_width() / 64.0)
+	shadow.position = Vector2(0, data.texture.get_height() * 0.40 * data.sprite_scale)
 	shadow.z_index = -1
 	add_child(shadow)
 
+	_base_texture = data.texture
+	var frame_base := data.texture.resource_path.get_basename()
+	for i in 4:
+		var frame_path := frame_base + "_w%d.png" % i
+		if ResourceLoader.exists(frame_path):
+			_walk_frames.append(load(frame_path))
 	body_sprite = Sprite2D.new()
 	body_sprite.texture = data.texture
 	body_sprite.scale = Vector2.ONE * data.sprite_scale
 	body_sprite.self_modulate = data.tint
+	body_offset = Vector2(0, -data.texture.get_height() * 0.10 * data.sprite_scale)
+	body_sprite.position = body_offset
 	add_child(body_sprite)
-	z_index = 9
+	var eye_glow := Sprite2D.new()
+	eye_glow.texture = preload("res://assets/textures/softdot.png")
+	eye_glow.position = body_offset + Vector2(3, -data.texture.get_height() * 0.30 * data.sprite_scale)
+	eye_glow.scale = Vector2(0.5, 0.3) * data.sprite_scale
+	eye_glow.modulate = Color(0.4, 1.0, 0.55, 0.5) if data.id != "boss" else Color(1.0, 0.45, 0.3, 0.6)
+	var eye_mat := CanvasItemMaterial.new()
+	eye_mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	eye_glow.material = eye_mat
+	add_child(eye_glow)
+	z_index = 10
 
 	_growl_timer = randf_range(2.0, 6.0)
 	_anim_time = randf() * TAU
@@ -161,12 +182,14 @@ func _resolve_windup(dist: float) -> void:
 		return
 	# Basic melee swipe.
 	_attack_cd = data.attack_cooldown
+	var swipe_dir := (_player.global_position - global_position).normalized()
+	Fx.slash(global_position + swipe_dir * data.attack_range * 0.7, swipe_dir.angle(), Color(0.8, 1.0, 0.75, 0.9))
 	if dist <= data.attack_range * 1.4:
 		_player.take_damage(data.damage, global_position)
 	var to_player := (_player.global_position - global_position).normalized()
 	var tw := create_tween()
-	tw.tween_property(body_sprite, "position", to_player * 14.0, 0.08)
-	tw.tween_property(body_sprite, "position", Vector2.ZERO, 0.15)
+	tw.tween_property(body_sprite, "position", body_offset + to_player * 14.0, 0.08)
+	tw.tween_property(body_sprite, "position", body_offset, 0.15)
 	set_state(ZState.CHASE)
 
 func _special_move(delta: float) -> void:
@@ -191,10 +214,18 @@ func _do_slam() -> void:
 		_player.take_damage(data.damage, global_position)
 	set_state(ZState.CHASE)
 
-func _face(dir: Vector2, delta: float) -> void:
-	body_sprite.rotation = lerp_angle(body_sprite.rotation, dir.angle(), minf(8.0 * delta, 1.0))
+func _face(dir: Vector2, _delta: float) -> void:
+	if absf(dir.x) > 0.05:
+		body_sprite.flip_h = dir.x < 0.0
 
-func _animate(_delta: float) -> void:
+func _animate(delta: float) -> void:
+	# Walk cycle frames
+	if _walk_frames.size() == 4:
+		if velocity.length() > 8.0:
+			_frame_clock += delta * maxf(velocity.length() / 15.0, 4.5)
+			body_sprite.texture = _walk_frames[int(_frame_clock) % 4]
+		else:
+			body_sprite.texture = _base_texture
 	if zstate == ZState.SPECIAL:
 		return
 	match data.anim:
@@ -244,8 +275,9 @@ func _die() -> void:
 	_on_death()
 	var tw := create_tween()
 	tw.set_parallel(true)
-	tw.tween_property(body_sprite, "scale", body_sprite.scale * Vector2(1.3, 0.2), 0.35)
-	tw.tween_property(self, "modulate:a", 0.0, 0.4)
+	tw.tween_property(body_sprite, "rotation", (-1.4 if body_sprite.flip_h else 1.4), 0.3).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(body_sprite, "position:y", body_sprite.position.y + 14.0, 0.3)
+	tw.tween_property(self, "modulate:a", 0.0, 0.45)
 	tw.chain().tween_callback(queue_free)
 
 func _drop_loot() -> void:

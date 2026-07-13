@@ -113,6 +113,24 @@ func burst(pos: Vector2, color: Color, amount: int = 10, speed: float = 140.0, l
 	var timer := get_tree().create_timer(life + 0.2)
 	timer.timeout.connect(Pool.release.bind(p))
 
+func slash(pos: Vector2, angle: float, color: Color = Color(1, 1, 1, 0.9)) -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var arc := Sprite2D.new()
+	arc.texture = preload("res://assets/textures/slash.png")
+	arc.rotation = angle
+	arc.modulate = color
+	arc.z_index = 40
+	scene.add_child(arc)
+	arc.global_position = pos
+	arc.scale = Vector2(0.6, 0.6)
+	var tw := arc.create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(arc, "scale", Vector2(1.3, 1.3), 0.16)
+	tw.tween_property(arc, "modulate:a", 0.0, 0.18)
+	tw.chain().tween_callback(arc.queue_free)
+
 func hit_spark(pos: Vector2) -> void:
 	burst(pos, Color(1.0, 0.92, 0.6), 6, 160.0, 0.3)
 

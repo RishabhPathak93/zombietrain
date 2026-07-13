@@ -6,6 +6,7 @@ var _velocity := Vector2.ZERO
 var _damage := 10.0
 var _travelled := 0.0
 var _max_range := 500.0
+var _pierce := 0
 var _active := false
 var _sprite: Sprite2D
 
@@ -26,7 +27,8 @@ func _init() -> void:
 	z_index = 20
 	body_entered.connect(_on_body_entered)
 
-func launch(pos: Vector2, dir: Vector2, speed: float, damage: float, max_range: float) -> void:
+func launch(pos: Vector2, dir: Vector2, speed: float, damage: float, max_range: float, pierce: int = 0) -> void:
+	_pierce = pierce
 	global_position = pos
 	rotation = dir.angle()
 	_velocity = dir * speed
@@ -50,7 +52,11 @@ func _on_body_entered(body: Node2D) -> void:
 		return
 	if body is Zombie:
 		body.take_damage(_damage, _velocity.normalized())
-		_despawn(true)
+		if _pierce > 0:
+			_pierce -= 1
+			Fx.hit_spark(global_position)
+		else:
+			_despawn(true)
 	elif body.is_in_group("breakable") and body.has_method("take_damage"):
 		body.take_damage(_damage, _velocity.normalized())
 		_despawn(true)
@@ -59,6 +65,8 @@ func _on_body_entered(body: Node2D) -> void:
 		_despawn(false)
 
 func _despawn(_hit: bool) -> void:
+	if not _active:
+		return
 	_active = false
 	set_physics_process(false)
-	Pool.release(self)
+	Pool.release.call_deferred(self)

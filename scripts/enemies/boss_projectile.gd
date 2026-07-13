@@ -40,7 +40,7 @@ func launch(pos: Vector2, dir: Vector2, speed: float, damage: int) -> void:
 	set_physics_process(true)
 
 func _physics_process(delta: float) -> void:
-	if not _active:
+	if not _active or GameState.state != GameState.State.PLAYING:
 		return
 	var step := _velocity * delta
 	global_position += step
@@ -59,6 +59,8 @@ func _on_body_entered(body: Node2D) -> void:
 		_despawn()
 
 func _despawn() -> void:
+	if not _active:
+		return
 	_active = false
 	set_physics_process(false)
-	Pool.release(self)
+	Pool.release.call_deferred(self)

@@ -3,6 +3,7 @@ extends CanvasLayer
 ## Cinematic letterbox + portrait + typewriter subtitles + skip button.
 
 signal skip_requested
+signal advance_requested
 
 const PORTRAITS := {
 	"mara": preload("res://assets/textures/port_mara.png"),
@@ -19,7 +20,10 @@ var _bottom_bar: ColorRect
 var _portrait: TextureRect
 var _name_label: Label
 var _text_label: Label
+var _hint: Label
 var _line_tween: Tween
+var _hint_tween: Tween
+var _awaiting := false
 
 func _ready() -> void:
 	layer = 15
@@ -63,8 +67,21 @@ func _ready() -> void:
 	skip_button.offset_right = -26
 	skip_button.offset_top = 10
 	skip_button.offset_bottom = 60
-	skip_button.pressed.connect(func() -> void: skip_requested.emit())
+	skip_button.pressed.connect(func() -> void:
+		skip_requested.emit()
+		_awaiting = false
+		advance_requested.emit()
+	)
 	add_child(skip_button)
+	_hint = UITheme.label("TAP or SPACE to continue  >", 16, UITheme.COL_ACCENT)
+	_hint.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	_hint.offset_left = -320
+	_hint.offset_right = -30
+	_hint.offset_top = -180
+	_hint.offset_bottom = -152
+	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_hint.visible = false
+	add_child(_hint)
 
 func open() -> void:
 	visible = true
@@ -74,19 +91,57 @@ func open() -> void:
 
 func close() -> void:
 	visible = false
+	_awaiting = false
+	_hint.visible = false
 	if _line_tween and _line_tween.is_valid():
 		_line_tween.kill()
 
-## Displays one dialogue line with a typewriter effect; awaitable.
-func line(speaker: String, text: String, hold_time: float = 1.4) -> void:
+func _unhandled_input(event: InputEvent) -> void:
+	if not visible or not _awaiting:
+		return
+	var tapped := false
+	if event is InputEventScreenTouch:
+		tapped = event.pressed
+	var keyed := event.is_action_pressed("ui_accept")
+	if tapped or keyed:
+		get_viewport().set_input_as_handled()
+		advance_requested.emit()
+
+## Displays one dialogue line with a typewriter effect, then waits for the
+## player to tap the screen / press Space. First tap finishes the typing,
+## the next one advances. Awaitable.
+func line(speaker: String, text: String, _hold_time: float = 1.4) -> void:
 	_portrait.texture = PORTRAITS.get(speaker)
 	_name_label.text = NAMES.get(speaker, speaker.to_upper())
 	_text_label.text = text
 	_text_label.visible_ratio = 0.0
+	_hint.visible = false
 	if _line_tween and _line_tween.is_valid():
 		_line_tween.kill()
 	_line_tween = create_tween()
-	var type_time := clampf(text.length() * 0.025, 0.4, 1.6)
+	var type_time := clampf(text.length() * 0.028, 0.4, 1.8)
 	_line_tween.tween_property(_text_label, "visible_ratio", 1.0, type_time)
-	_line_tween.tween_interval(hold_time)
-	await _line_tween.finished
+	_line_tween.tween_callback(_show_hint)
+	_awaiting = true
+	while _awaiting:
+		await advance_requested
+		if _text_label.visible_ratio < 1.0:
+			# First tap: reveal the full line instantly.
+			if _line_tween and _line_tween.is_valid():
+				_line_tween.kill()
+			_text_label.visible_ratio = 1.0
+			_show_hint()
+		else:
+			break
+	_awaiting = false
+	_hint.visible = false
+
+func _show_hint() -> void:
+	_hint.visible = true
+	_hint.modulate.a = 1.0
+	if _hint_tween and _hint_tween.is_valid():
+		_hint_tween.kill()
+	_hint_tween = create_tween()
+	_hint_tween.set_loops()
+	_hint_tween.tween_property(_hint, "modulate:a", 0.25, 0.5)
+	_hint_tween.tween_property(_hint, "modulate:a", 1.0, 0.5)

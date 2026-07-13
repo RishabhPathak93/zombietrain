@@ -9,6 +9,9 @@ const TEXTURES := {
 	"med": preload("res://assets/textures/medkit.png"),
 	"ammo": preload("res://assets/textures/ammo.png"),
 	"heart": preload("res://assets/textures/medkit.png"),
+	"grenade": preload("res://assets/textures/grenade.png"),
+	"note": preload("res://assets/textures/note.png"),
+	"code": preload("res://assets/textures/codechip.png"),
 }
 
 const MAGNET_RANGE := 110.0
@@ -16,6 +19,8 @@ const MAGNET_SPEED := 420.0
 
 var kind := "coin"
 var amount := 1
+var note_title := ""
+var note_text := ""
 var _sprite: Sprite2D
 var _collected := false
 var _bob_tween: Tween
@@ -102,6 +107,16 @@ func _on_body_entered(body: Node2D) -> void:
 			Fx.float_text(global_position, "AMMO", UITheme.COL_TEXT, 20)
 		"heart":
 			player.heal(30)
+		"grenade":
+			player.add_grenade(1)
+			AudioMan.play("pickup_item")
+			Fx.float_text(global_position, "+1 GRENADE", UITheme.COL_ACCENT, 20)
+		"note":
+			EventBus.note_found.emit(note_title, note_text)
+		"code":
+			GameState.add_code_digit()
+			AudioMan.play("pickup_coin")
+			Fx.float_text(global_position, "CODE CHIP  [%s]" % GameState.code_hint(), UITheme.COL_ACCENT, 22)
 	EventBus.pickup_collected.emit(kind, amount)
 	var tw := create_tween()
 	tw.set_parallel(true)

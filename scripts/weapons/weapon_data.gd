@@ -16,6 +16,7 @@ extends Resource
 @export var sfx: String = "pistol"
 @export var shake: float = 2.0
 @export var kick: float = 40.0
+@export var pierce: int = 0 ## enemies a bullet passes through
 
 func damage_now() -> float:
 	return base_damage * (1.0 + SaveGame.upgrade_bonus(id + "_damage"))

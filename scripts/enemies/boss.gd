@@ -140,11 +140,13 @@ func _fight(delta: float, dist: float) -> void:
 		return
 	if dist <= data.attack_range and _attack_cd <= 0.0:
 		_attack_cd = data.attack_cooldown
+		var swipe := (_player.global_position - global_position).normalized()
+		Fx.slash(global_position + swipe * data.attack_range * 0.7, swipe.angle(), Color(1.0, 0.7, 0.6, 0.95))
 		_player.take_damage(data.damage, global_position)
 		var to_player := (_player.global_position - global_position).normalized()
 		var tw := create_tween()
-		tw.tween_property(body_sprite, "position", to_player * 22.0, 0.08)
-		tw.tween_property(body_sprite, "position", Vector2.ZERO, 0.2)
+		tw.tween_property(body_sprite, "position", body_offset + to_player * 22.0, 0.08)
+		tw.tween_property(body_sprite, "position", body_offset, 0.2)
 		return
 	var to_player := (_player.global_position - global_position).normalized()
 	velocity = to_player * data.speed * (1.35 if _enraged else 1.0)
@@ -234,7 +236,7 @@ func _shock_sweep() -> void:
 		if not is_instance_valid(self) or zstate == ZState.DEAD:
 			return
 		elapsed += get_physics_process_delta_time()
-		if dealt or _player == null or not is_instance_valid(_player):
+		if dealt or GameState.state != GameState.State.PLAYING or _player == null or not is_instance_valid(_player):
 			continue
 		var radius := 32.0 + (elapsed / 0.55) * 420.0
 		var dist := origin.distance_to(_player.global_position)
@@ -256,8 +258,16 @@ func _do_blink() -> void:
 
 func _blink_move() -> void:
 	if _player and is_instance_valid(_player):
-		var dir := Vector2.RIGHT.rotated(randf() * TAU)
-		global_position = _player.global_position + dir * 150.0
+		var space := get_world_2d().direct_space_state
+		var chosen := _player.global_position + (global_position - _player.global_position).normalized() * 140.0
+		for i in 8:
+			var dir := Vector2.RIGHT.rotated(randf() * TAU)
+			var candidate := _player.global_position + dir * 150.0
+			var query := PhysicsRayQueryParameters2D.create(_player.global_position, candidate, 1)
+			if space.intersect_ray(query).is_empty():
+				chosen = candidate
+				break
+		global_position = chosen
 	Fx.burst(global_position, Color(0.5, 0.9, 0.85), 12, 160.0, 0.4)
 
 func _blink_done() -> void:

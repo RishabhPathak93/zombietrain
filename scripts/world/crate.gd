@@ -17,13 +17,11 @@ func _init() -> void:
 	_sprite = Sprite2D.new()
 	_sprite.texture = preload("res://assets/textures/crate.png")
 	add_child(_sprite)
-	_sprite.rotation = randf_range(-0.15, 0.15)
-	z_index = 4
+	z_index = 10
 
 func take_damage(amount: float, _from_dir: Vector2) -> void:
 	hp -= amount
 	AudioMan.play("crate", -8.0, 0.2)
-	_sprite.rotation += randf_range(-0.08, 0.08)
 	var tw := create_tween()
 	tw.tween_property(_sprite, "scale", Vector2(1.12, 0.9), 0.06)
 	tw.tween_property(_sprite, "scale", Vector2.ONE, 0.1)

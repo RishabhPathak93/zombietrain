@@ -64,7 +64,7 @@ func _build_backdrop() -> void:
 		zombie.texture = preload("res://assets/textures/zombie_walker.png")
 		zombie.position = Vector2(randf_range(100, 1180), randf_range(80, 300))
 		zombie.modulate = Color(0.35, 0.45, 0.4, 0.6)
-		zombie.rotation = randf() * TAU
+		zombie.flip_h = randf() < 0.5
 		add_child(zombie)
 		var zombie_tween := create_tween()
 		zombie_tween.set_loops()
@@ -116,6 +116,12 @@ func _build_ui() -> void:
 		var chapters_button := UITheme.button("CHAPTERS", 24, Vector2(320, 60))
 		chapters_button.pressed.connect(_show_chapters)
 		_menu_box.add_child(chapters_button)
+	var fps_button := UITheme.button("3D MODE (BETA)", 22, Vector2(320, 58))
+	fps_button.pressed.connect(func() -> void:
+		AudioMan.stop_music(0.5)
+		Router.go("res://scenes/game3d.tscn")
+	)
+	_menu_box.add_child(fps_button)
 	var armory_button := UITheme.button("ARMORY", 24, Vector2(320, 60))
 	armory_button.pressed.connect(_show_armory)
 	_menu_box.add_child(armory_button)

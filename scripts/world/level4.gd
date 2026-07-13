@@ -23,10 +23,16 @@ func _ready() -> void:
 	_build_props_depot()
 	_build_loot_depot()
 	_build_zombies_depot()
-	_build_atmosphere(Color(0.78, 0.72, 0.9), [
+	_build_atmosphere(Color(0.52, 0.47, 0.68), [
 		Vector2(600, 500), Vector2(2500, 500), Vector2(1550, 1200),
 		Vector2(1000, 1470), Vector2(2200, 1470),
 	])
+	build_gate(1274, 524, 548, 28)
+	build_console(Vector2(1050, 620), "simon5")
+	spawn_note(Vector2(600, 350), "Ember Memo #77",
+		"Recall protocol is NOT a weapon. It is a leash.\nIf the field engineer's line is compromised, the assets walk home. — Dir. R.")
+	spawn_note(Vector2(2700, 1250), "Locker Tag",
+		"VALE, E. — Locker 9.\nContents transferred to the Ember Line, car 4. Do not log this transfer.")
 	EventBus.objective_changed.connect(_check_boss_wake)
 
 func _build_ground_depot() -> void:
@@ -104,7 +110,7 @@ func _build_warehouse() -> void:
 	tw.tween_property(glow, "modulate:a", 0.1, 0.8)
 
 func _check_boss_wake() -> void:
-	if not _boss_triggered and GameState.relays >= GameState.RELAYS_NEEDED:
+	if not _boss_triggered and GameState.gate_open:
 		_boss_triggered = true
 		Fx.float_text(Vector2(1550, 520), "THE YARD SHAKES", UITheme.COL_BAD, 26)
 		boss.activate()
@@ -184,5 +190,6 @@ func _update_targets() -> void:
 			targets["relays"] = best
 	if boss and is_instance_valid(boss):
 		targets["boss"] = boss.global_position
+	targets["gate"] = gate_console_pos
 	targets["escape"] = train_door_pos
 	GameState.objective_targets = targets

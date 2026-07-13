@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_wd"]
+
+[resource]
+script = ExtResource("1_wd")
+id = "rifle"
+display_name = "Rifle"
+base_damage = 42.0
+pellets = 1
+spread_deg = 1.0
+fire_rate = 1.0
+base_mag_size = 6
+reload_time = 1.6
+bullet_speed = 1400.0
+bullet_range = 900.0
+sfx = "shotgun"
+shake = 4.0
+kick = 60.0
+pierce = 2

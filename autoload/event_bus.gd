@@ -9,6 +9,8 @@ signal ammo_changed(mag: int, mag_size: int, weapon_id: String, reloading: bool)
 signal weapon_changed(weapon_id: String)
 signal reload_started(duration: float)
 signal gunshot(pos: Vector2)
+signal grenades_changed(count: int)
+signal dash_used(cooldown: float)
 
 # Economy / loot
 signal coins_changed(total: int)
@@ -26,6 +28,8 @@ signal survivor_rescued
 signal escape_phase_started
 signal wave_incoming
 signal time_low
+signal note_found(title: String, text: String)
+signal comm(speaker: String, text: String)
 signal game_won
 signal game_lost(reason: String)
 

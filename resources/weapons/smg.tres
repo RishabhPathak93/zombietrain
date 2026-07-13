@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_wd"]
+
+[resource]
+script = ExtResource("1_wd")
+id = "smg"
+display_name = "SMG"
+base_damage = 6.0
+pellets = 1
+spread_deg = 7.0
+fire_rate = 9.0
+base_mag_size = 30
+reload_time = 1.4
+bullet_speed = 900.0
+bullet_range = 480.0
+sfx = "pistol"
+shake = 1.2
+kick = 14.0
+pierce = 0
